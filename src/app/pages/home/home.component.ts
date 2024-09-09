@@ -7,7 +7,7 @@ import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
@@ -43,9 +43,11 @@ export class HomeComponent {
 
   changeHandler(){
     if (this.newTaskCtrl.valid){
-      const value = this.newTaskCtrl.value;
-      this.addTask(value);
-      this.newTaskCtrl.setValue('');
+      const value = this.newTaskCtrl.value.trim();
+      if (value !== '') {
+        this.addTask(value);
+        this.newTaskCtrl.setValue('');
+      }
     }
 
   }
@@ -61,9 +63,13 @@ export class HomeComponent {
 
   deleteTask(index: number){
     this.tasks.update((tasks) => tasks.filter((task, position) => position !== index));
+    // this.tasks.mutate(state => {
+    //   state.splice(index, 1)
+    // })
   }
 
   updateTask(index: number){
+
     this.tasks.update((tasks) => {
       return tasks.map((task, position) => {
         if(position === index){
@@ -76,4 +82,38 @@ export class HomeComponent {
       })
     })
   }
+
+
+   updateTasksEditingMode(index: number){
+    this.tasks.update(prevState => {
+      return prevState.map((task, position) => {
+        if (position === index){
+          return {
+            ...task,
+            editing: true
+          }
+        }
+        return {
+          ...task,
+          editing: false
+        };
+      })
+    });
+   }
+
+   updateTaskText(index: number, event: Event){
+    const input = event.target as HTMLInputElement;
+    this.tasks.update(prevState => {
+      return prevState.map((task, position) => {
+        if (position === index){
+          return {
+            ...task,
+            title: input.value,
+            editing: false
+          }
+        }
+        return task;
+      })
+    });
+   }
 }
